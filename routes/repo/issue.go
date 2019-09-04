@@ -110,6 +110,7 @@ func issues(c *context.Context, isPullList bool) {
 
 	viewType := c.Query("type")
 	sortType := c.Query("sort")
+	title := c.Query("title")
 	types := []string{"assigned", "created_by", "mentioned"}
 	if !com.IsSliceContainsStr(types, viewType) {
 		viewType = "all"
@@ -142,7 +143,6 @@ func issues(c *context.Context, isPullList bool) {
 	if c.IsLogged {
 		uid = c.User.ID
 	}
-
 	repo := c.Repo.Repository
 	selectLabels := c.Query("labels")
 	milestoneID := c.QueryInt64("milestone")
@@ -155,6 +155,7 @@ func issues(c *context.Context, isPullList bool) {
 		AssigneeID:  assigneeID,
 		FilterMode:  filterMode,
 		IsPull:      isPullList,
+		Title:       title,
 	})
 
 	page := c.QueryInt("page")
@@ -183,6 +184,7 @@ func issues(c *context.Context, isPullList bool) {
 		IsPull:      isPullList,
 		Labels:      selectLabels,
 		SortType:    sortType,
+		Title:       title,
 	})
 	if err != nil {
 		c.Handle(500, "Issues", err)

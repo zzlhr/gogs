@@ -883,6 +883,7 @@ type IssuesOptions struct {
 	IsPull      bool
 	Labels      string
 	SortType    string
+	Title       string
 }
 
 // buildIssuesQuery returns nil if it foresees there won't be any value returned.
@@ -892,7 +893,6 @@ func buildIssuesQuery(opts *IssuesOptions) *xorm.Session {
 	if opts.Page <= 0 {
 		opts.Page = 1
 	}
-
 	if opts.RepoID > 0 {
 		sess.Where("issue.repo_id=?", opts.RepoID).And("issue.is_closed=?", opts.IsClosed)
 	} else if opts.RepoIDs != nil {
@@ -904,7 +904,9 @@ func buildIssuesQuery(opts *IssuesOptions) *xorm.Session {
 	} else {
 		sess.Where("issue.is_closed=?", opts.IsClosed)
 	}
-
+	if len(opts.Title) > 0 {
+		sess.And("issue.name like ? or issue.content like ?", "%"+opts.Title+"%", "%"+opts.Title+"%")
+	}
 	if opts.AssigneeID > 0 {
 		sess.And("issue.assignee_id=?", opts.AssigneeID)
 	} else if opts.PosterID > 0 {
@@ -975,7 +977,6 @@ func Issues(opts *IssuesOptions) ([]*Issue, error) {
 	if err := sess.Find(&issues); err != nil {
 		return nil, fmt.Errorf("Find: %v", err)
 	}
-
 	// FIXME: use IssueList to improve performance.
 	for i := range issues {
 		if err := issues[i].LoadAttributes(); err != nil {
@@ -1208,6 +1209,7 @@ type IssueStatsOptions struct {
 	AssigneeID  int64
 	FilterMode  FilterMode
 	IsPull      bool
+	Title       string
 }
 
 // GetIssueStats returns issue statistic information by given conditions.
@@ -1216,7 +1218,6 @@ func GetIssueStats(opts *IssueStatsOptions) *IssueStats {
 
 	countSession := func(opts *IssueStatsOptions) *xorm.Session {
 		sess := x.Where("issue.repo_id = ?", opts.RepoID).And("is_pull = ?", opts.IsPull)
-
 		if len(opts.Labels) > 0 && opts.Labels != "0" {
 			labelIDs := tool.StringsToInt64s(strings.Split(opts.Labels, ","))
 			if len(labelIDs) > 0 {
@@ -1227,11 +1228,12 @@ func GetIssueStats(opts *IssueStatsOptions) *IssueStats {
 		if opts.MilestoneID > 0 {
 			sess.And("issue.milestone_id = ?", opts.MilestoneID)
 		}
-
+		if len(opts.Title) > 0 {
+			sess.And("issue.name like ? or issue.content like ?", "%"+opts.Title+"%", "%"+opts.Title+"%")
+		}
 		if opts.AssigneeID > 0 {
 			sess.And("assignee_id = ?", opts.AssigneeID)
 		}
-
 		return sess
 	}
 

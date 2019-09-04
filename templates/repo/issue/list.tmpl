@@ -24,6 +24,23 @@
 			</a>
 		</div>
 		<div class="ui right floated secondary filter menu">
+			<!-- search text -->
+			<div class="ui item" style="width:170px;">
+				<span class="text">
+					搜索：
+				</span>
+				<div class="field">
+					<input id="searchText" style="width: 100px;" name="title" placeholder="搜索内容" value="" tabindex="1" autofocus required>
+				</div>
+			</div>
+			<script>
+			$('#searchText').bind('keyup', function(event) {
+      		if (event.keyCode == "13") {
+      			//回车执行查询
+      			location.href = {{$.Link}}+"?title="+$('#searchText').val()
+      		}
+      	});
+			</script>
 			<!-- Label -->
 			<div class="ui {{if not .Labels}}disabled{{end}} dropdown jump item">
 				<span class="text">
@@ -37,6 +54,7 @@
 					{{end}}
 				</div>
 			</div>
+
 
 			<!-- Milestone -->
 			<div class="ui {{if not .Milestones}}disabled{{end}} dropdown jump item">
